@@ -105,10 +105,18 @@ class ChatGPTProxy
     {
         $allCookies = array_merge(self::REQUIRED_COOKIES, self::OPTIONAL_COOKIES);
         
+        // First, check $_COOKIE superglobal (populated from browser cookies)
         foreach ($allCookies as $cookieName) {
             if (isset($_COOKIE[$cookieName])) {
                 $this->cookies[$cookieName] = $_COOKIE[$cookieName];
             }
+        }
+        
+        // Also check for cookies in the standard HTTP Cookie header
+        // This is important for API clients, cURL, and test scripts
+        if (isset($_SERVER['HTTP_COOKIE'])) {
+            $headerCookies = $this->parseCookieString($_SERVER['HTTP_COOKIE']);
+            $this->cookies = array_merge($this->cookies, $headerCookies);
         }
         
         // Also check for cookies in custom header (X-ChatGPT-Cookies)
