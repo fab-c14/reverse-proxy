@@ -18,7 +18,7 @@ echo -e "${YELLOW}NOTE: Replace YOUR_TOKEN, YOUR_CALLBACK, and YOUR_CLEARANCE wi
 
 # Example cookies (REPLACE THESE)
 SESSION_TOKEN="YOUR_TOKEN"
-CALLBACK_URL="https%3A%2F%2Fchat.openai.com"
+CALLBACK_URL="https%3A%2F%2Fchat.openai.com"  # URL-encoded: https://chat.openai.com
 CF_CLEARANCE="YOUR_CLEARANCE"
 
 echo -e "${GREEN}1. Check Session Status (HTTPS with verbose output)${NC}"

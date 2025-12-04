@@ -25,7 +25,7 @@ class ChatGPTProxy
         '__Host-next-auth.csrf-token',
         'ajs_anonymous_id',
         'oai-did',
-        'oai-dm-tgt-c-240329',
+        'oai-dm-tgt-c-240329',  // OpenAI device management cookie (date suffix may vary)
         'intercom-id-dgkjq2bp',
         'intercom-session-dgkjq2bp',
         'intercom-device-id-dgkjq2bp'
@@ -163,6 +163,7 @@ class ChatGPTProxy
         }
         
         // Set default User-Agent if not provided
+        // Using a recent Chrome version for better compatibility
         if (!isset($this->forwardHeaders['User-Agent'])) {
             $this->forwardHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
         }
