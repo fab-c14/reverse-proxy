@@ -535,7 +535,7 @@
                     const trimmedBody = body.trim();
                     if (trimmedBody.startsWith('{') || trimmedBody.startsWith('[')) {
                         try {
-                            JSON.parse(body);
+                            JSON.parse(trimmedBody);
                         } catch (e) {
                             showResult('error', `❌ Invalid JSON in request body:\n\n${e.message}\n\nPlease check your JSON syntax.`);
                             return;

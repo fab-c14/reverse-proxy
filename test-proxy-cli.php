@@ -153,7 +153,7 @@ function displayResult($result, $testName) {
     $body = $result['body'];
     $json = json_decode($body, true);
     
-    if ($json !== null) {
+    if (json_last_error() === JSON_ERROR_NONE) {
         printMessage("\nResponse (formatted):", Colors::YELLOW);
         echo json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
     } else {
