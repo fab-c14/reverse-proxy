@@ -273,17 +273,17 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="sessionToken">__Secure-next-auth.session-token (Required) *</label>
+                    <label for="sessionToken">__Secure-next-auth.session-token (Required)</label>
                     <textarea id="sessionToken" placeholder="Paste your session token here"></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label for="callbackUrl">__Secure-next-auth.callback-url (Required) *</label>
+                    <label for="callbackUrl">__Secure-next-auth.callback-url (Required)</label>
                     <input type="text" id="callbackUrl" value="https%3A%2F%2Fchat.openai.com" placeholder="Usually: https%3A%2F%2Fchat.openai.com">
                 </div>
                 
                 <div class="form-group">
-                    <label for="cfClearance">cf_clearance (Required) *</label>
+                    <label for="cfClearance">cf_clearance (Required)</label>
                     <textarea id="cfClearance" placeholder="Paste your Cloudflare clearance token here"></textarea>
                 </div>
                 
@@ -468,7 +468,7 @@
                     headers: {
                         'Cookie': buildCookieString(),
                         'Accept': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                     },
                     credentials: 'include'
                 });
@@ -525,12 +525,19 @@
                     headers: {
                         'Cookie': buildCookieString(),
                         'Accept': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                     },
                     credentials: 'include'
                 };
                 
                 if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+                    // Validate JSON before sending
+                    try {
+                        JSON.parse(body);
+                    } catch (e) {
+                        showResult('error', `❌ Invalid JSON in request body:\n\n${e.message}\n\nPlease check your JSON syntax.`);
+                        return;
+                    }
                     options.headers['Content-Type'] = 'application/json';
                     options.body = body;
                 }

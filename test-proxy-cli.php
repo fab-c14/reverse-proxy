@@ -92,7 +92,7 @@ function makeRequest($proxyUrl, $endpoint, $cookies, $method = 'GET', $body = nu
     $headers = [
         'Cookie: ' . buildCookieString($cookies),
         'Accept: application/json',
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     ];
     
     if ($body !== null) {
@@ -280,6 +280,16 @@ function displayInstructions() {
     printMessage("2. Proxy files are in htdocs (e.g., C:\\xampp\\htdocs\\reverse-proxy)", Colors::YELLOW);
     printMessage("3. You've configured your cookies in this file", Colors::YELLOW);
     printMessage("4. The \$PROXY_URL variable matches your setup", Colors::YELLOW);
+    echo "\n";
+    printMessage("⚠️  If XAMPP is not running:", Colors::RED, true);
+    printMessage("- Tests will fail with connection errors", Colors::RED);
+    printMessage("- Open XAMPP Control Panel and start Apache", Colors::RED);
+    printMessage("- Verify Apache is running before continuing", Colors::RED);
+    echo "\n";
+    printMessage("⚠️  If proxy files are not properly configured:", Colors::RED, true);
+    printMessage("- You'll get 404 Not Found errors", Colors::RED);
+    printMessage("- Make sure index.php, ChatGPTProxy.php, and .htaccess are present", Colors::RED);
+    printMessage("- Verify the proxy URL matches your directory structure", Colors::RED);
     echo "\n";
     printMessage("To get cookies:", Colors::YELLOW, true);
     printMessage("1. Log in to https://chat.openai.com", Colors::YELLOW);
