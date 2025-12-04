@@ -315,9 +315,15 @@ if (!validateConfig($COOKIES, $PROXY_URL)) {
 
 // Ask user to confirm
 echo "\n";
-printMessage("Press ENTER to start tests, or Ctrl+C to cancel...", Colors::CYAN, true);
 if (php_sapi_name() === 'cli') {
+    printMessage("Press ENTER to start tests, or Ctrl+C to cancel...", Colors::CYAN, true);
     fgets(STDIN);
+} else {
+    printMessage("⚠️  This script is designed to run from the command line.", Colors::RED, true);
+    printMessage("Please run: php test-proxy-cli.php", Colors::YELLOW);
+    echo "\n";
+    printMessage("Proceeding with tests anyway...", Colors::YELLOW);
+    sleep(2);
 }
 
 // Run tests

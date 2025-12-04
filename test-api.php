@@ -531,14 +531,17 @@
                 };
                 
                 if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-                    // Validate JSON before sending
-                    try {
-                        JSON.parse(body);
-                    } catch (e) {
-                        showResult('error', `❌ Invalid JSON in request body:\n\n${e.message}\n\nPlease check your JSON syntax.`);
-                        return;
+                    // Validate JSON before sending (only if body looks like JSON)
+                    const trimmedBody = body.trim();
+                    if (trimmedBody.startsWith('{') || trimmedBody.startsWith('[')) {
+                        try {
+                            JSON.parse(body);
+                        } catch (e) {
+                            showResult('error', `❌ Invalid JSON in request body:\n\n${e.message}\n\nPlease check your JSON syntax.`);
+                            return;
+                        }
+                        options.headers['Content-Type'] = 'application/json';
                     }
-                    options.headers['Content-Type'] = 'application/json';
                     options.body = body;
                 }
                 
