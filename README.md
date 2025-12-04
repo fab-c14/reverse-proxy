@@ -217,9 +217,42 @@ This confirms:
 
 ## Testing
 
-### Quick Test Script
+This repository includes comprehensive test files for localhost/XAMPP testing. See [TESTING.md](TESTING.md) for complete documentation.
 
-Save as `test-proxy.php` and run from command line:
+### Interactive Web Test Interface
+
+Open `test-api.php` in your browser for a beautiful, user-friendly testing interface:
+
+```
+http://localhost/reverse-proxy/test-api.php
+```
+
+**Features:**
+- Modern, responsive UI
+- Cookie management with localStorage
+- Quick tests for all endpoints
+- Custom request builder
+- Real-time formatted results
+
+### Command Line Test Script
+
+Run automated tests from the command line using `test-proxy-cli.php`:
+
+```bash
+# 1. Edit test-proxy-cli.php and add your cookies
+# 2. Run the tests
+php test-proxy-cli.php
+```
+
+**Features:**
+- Automated test suite
+- Colored terminal output
+- Configuration validation
+- Comprehensive test summary
+
+### Manual Testing
+
+For quick manual testing, save as `test-proxy.php` and run from command line:
 
 ```php
 <?php
@@ -248,6 +281,8 @@ $proxy->handleRequest();
 ```
 
 Run with: `php test-proxy.php`
+
+For more details on testing, cookie setup, and troubleshooting, see **[TESTING.md](TESTING.md)**.
 
 ## Troubleshooting
 
