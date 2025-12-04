@@ -116,22 +116,24 @@ class ChatGPTProxy
         // This is important for API clients, cURL, and test scripts
         if (isset($_SERVER['HTTP_COOKIE'])) {
             $headerCookies = $this->parseCookieString($_SERVER['HTTP_COOKIE']);
-            // Only use cookies that are in our allowed list
-            foreach ($allCookies as $cookieName) {
-                if (isset($headerCookies[$cookieName])) {
-                    $this->cookies[$cookieName] = $headerCookies[$cookieName];
-                }
-            }
+            $this->filterAndMergeCookies($headerCookies, $allCookies);
         }
         
         // Also check for cookies in custom header (X-ChatGPT-Cookies)
         if (isset($_SERVER['HTTP_X_CHATGPT_COOKIES'])) {
             $customCookies = $this->parseCookieString($_SERVER['HTTP_X_CHATGPT_COOKIES']);
-            // Only use cookies that are in our allowed list
-            foreach ($allCookies as $cookieName) {
-                if (isset($customCookies[$cookieName])) {
-                    $this->cookies[$cookieName] = $customCookies[$cookieName];
-                }
+            $this->filterAndMergeCookies($customCookies, $allCookies);
+        }
+    }
+    
+    /**
+     * Filter parsed cookies to only include allowed ones and merge into $this->cookies
+     */
+    private function filterAndMergeCookies(array $parsedCookies, array $allowedCookies): void
+    {
+        foreach ($allowedCookies as $cookieName) {
+            if (isset($parsedCookies[$cookieName])) {
+                $this->cookies[$cookieName] = $parsedCookies[$cookieName];
             }
         }
     }
