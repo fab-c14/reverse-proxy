@@ -1,353 +1,154 @@
-# ChatGPT Web Interface Reverse Proxy
+# ChatGPT Reverse Proxy
 
-A lightweight PHP reverse proxy that forwards requests to ChatGPT's web interface (chat.openai.com) without using the OpenAI API. All authentication is handled through session cookies, and all traffic is relayed over HTTPS.
+A lightweight PHP reverse proxy for ChatGPT's web interface. No API keys required - uses session cookies for authentication.
 
 ## Features
 
-- ✅ Proxies requests to ChatGPT web interface (NOT the API)
-- ✅ Cookie-based authentication (no API keys required)
-- ✅ HTTPS-only communication
+- ✅ Proxies requests to ChatGPT web interface
+- ✅ Cookie-based authentication
+- ✅ HTTPS communication
 - ✅ Maintains conversation state
-- ✅ Self-contained with minimal dependencies
-- ✅ Compatible with standard LAMP stack
+- ✅ Minimal dependencies
 
 ## Requirements
 
 - PHP 7.4 or higher
-- PHP cURL extension enabled
-- HTTPS-enabled web server (Apache/Nginx)
+- PHP cURL extension
+- Web server (Apache/Nginx)
 - Valid ChatGPT session cookies
 
 ## Required Cookies
 
-The proxy requires the following authentication cookies from your ChatGPT session:
+Get these from your browser's Developer Tools (F12 → Application → Cookies):
 
-1. **`__Secure-next-auth.session-token`** - Primary authentication token
-2. **`__Secure-next-auth.callback-url`** - Callback URL for authentication
-3. **`cf_clearance`** - Cloudflare clearance cookie
+1. `__Secure-next-auth.session-token` - Authentication token
+2. `__Secure-next-auth.callback-url` - Callback URL
+3. `cf_clearance` - Cloudflare clearance
 
-### Optional Cookies (may improve compatibility)
-
-- `__cf_bm` - Cloudflare bot management
-- `_cfuvid` - Cloudflare unique visitor ID
-- `__Host-next-auth.csrf-token` - CSRF protection token
-- `ajs_anonymous_id` - Analytics anonymous ID
-- `oai-did` - OpenAI device ID
-- `oai-dm-tgt-c-240329` - OpenAI device management target
-- `intercom-id-dgkjq2bp` - Intercom user ID
-- `intercom-session-dgkjq2bp` - Intercom session
-- `intercom-device-id-dgkjq2bp` - Intercom device ID
-
-## Installation
+## Quick Start
 
 ### 1. Upload Files
 
-Upload the following files to your web server:
-
+Upload these files to your web server:
 ```
 /var/www/html/chatgpt-proxy/
 ├── index.php
-└── ChatGPTProxy.php
+├── ChatGPTProxy.php
+└── .htaccess
 ```
 
 ### 2. Configure Web Server
 
-**For Apache (.htaccess):**
+**Apache**: Use the included `.htaccess` file
 
-Create a `.htaccess` file in the proxy directory:
-
-```apache
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteBase /chatgpt-proxy/
-    
-    # Forward all requests to index.php
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php?path=$1 [QSA,L]
-</IfModule>
-
-# Security headers
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "DENY"
-    Header set X-XSS-Protection "1; mode=block"
-</IfModule>
-```
-
-**For Nginx:**
-
-Add to your server block:
-
+**Nginx**: Add to your server block:
 ```nginx
 location /chatgpt-proxy/ {
     try_files $uri $uri/ /chatgpt-proxy/index.php?path=$uri&$args;
-    
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
 }
 ```
 
-### 3. Set Permissions
+### 3. Get Your Cookies
+
+1. Log in to [chat.openai.com](https://chat.openai.com)
+2. Press F12 → Application → Cookies → https://chat.openai.com
+3. Copy the three required cookie values
+
+## Demo: Interacting with ChatGPT
+
+Run the included demonstration script to see how to interact with ChatGPT:
 
 ```bash
-chmod 644 index.php ChatGPTProxy.php
-chown www-data:www-data index.php ChatGPTProxy.php
+# 1. Edit demo-gpt-interaction.php and add your cookies
+# 2. Run the demo
+php demo-gpt-interaction.php
 ```
 
-## Obtaining ChatGPT Session Cookies
+This demo shows:
+- ✓ How to authenticate with cookies
+- ✓ How to verify session status
+- ✓ How to send prompts to ChatGPT
+- ✓ How to receive and display responses
 
-1. Log in to [ChatGPT](https://chat.openai.com) in your browser
-2. Open Developer Tools (F12)
-3. Go to the "Application" or "Storage" tab
-4. Navigate to "Cookies" → "https://chat.openai.com"
-5. Copy the values of the required cookies listed above
+## Usage Examples
 
-## Usage
-
-### Method 1: Using HTTP Cookies (Browser)
-
-Set the required cookies in your application and make requests to the proxy:
-
-```javascript
-// JavaScript example
-fetch('https://yourserver.com/chatgpt-proxy/api/auth/session', {
-    credentials: 'include', // Include cookies
-    headers: {
-        'Accept': 'application/json'
-    }
-})
-.then(response => response.json())
-.then(data => console.log(data));
-```
-
-### Method 2: Using Custom Header (cURL)
-
-Pass cookies via the `X-ChatGPT-Cookies` header:
+### cURL Example
 
 ```bash
+# Check session status
 curl -X GET "https://yourserver.com/chatgpt-proxy/api/auth/session" \
-  -H "X-ChatGPT-Cookies: __Secure-next-auth.session-token=YOUR_SESSION_TOKEN; __Secure-next-auth.callback-url=YOUR_CALLBACK_URL; cf_clearance=YOUR_CF_CLEARANCE" \
-  -H "Accept: application/json" \
-  --insecure
-```
-
-### Method 3: Using Standard Cookie Header
-
-```bash
-curl -X GET "https://yourserver.com/chatgpt-proxy/api/auth/session" \
-  -H "Cookie: __Secure-next-auth.session-token=YOUR_SESSION_TOKEN; __Secure-next-auth.callback-url=YOUR_CALLBACK_URL; cf_clearance=YOUR_CF_CLEARANCE" \
-  -H "Accept: application/json" \
-  -v
-```
-
-## cURL Examples
-
-### 1. Check Session Status (HTTPS)
-
-```bash
-curl -k -v -X GET "https://yourserver.com/chatgpt-proxy/api/auth/session" \
-  -H "Cookie: __Secure-next-auth.session-token=YOUR_TOKEN_HERE; __Secure-next-auth.callback-url=https%3A%2F%2Fchat.openai.com; cf_clearance=YOUR_CF_CLEARANCE_HERE" \
+  -H "Cookie: __Secure-next-auth.session-token=YOUR_TOKEN; __Secure-next-auth.callback-url=YOUR_CALLBACK; cf_clearance=YOUR_CLEARANCE" \
   -H "Accept: application/json"
 ```
 
-**Expected output:** JSON response with session information
-
-### 2. Access ChatGPT Home Page
-
-```bash
-curl -k -X GET "https://yourserver.com/chatgpt-proxy/" \
-  -H "Cookie: __Secure-next-auth.session-token=YOUR_TOKEN; __Secure-next-auth.callback-url=YOUR_CALLBACK; cf_clearance=YOUR_CLEARANCE" \
-  -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-```
-
-**Expected output:** HTML content of ChatGPT interface
-
-### 3. Start a New Conversation (POST)
-
-```bash
-curl -k -v -X POST "https://yourserver.com/chatgpt-proxy/backend-api/conversation" \
-  -H "Cookie: __Secure-next-auth.session-token=YOUR_TOKEN; __Secure-next-auth.callback-url=YOUR_CALLBACK; cf_clearance=YOUR_CLEARANCE" \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{
-    "action": "next",
-    "messages": [
-      {
-        "role": "user",
-        "content": {
-          "content_type": "text",
-          "parts": ["Hello, ChatGPT!"]
-        }
-      }
-    ],
-    "model": "text-davinci-002-render-sha",
-    "parent_message_id": "00000000-0000-0000-0000-000000000000"
-  }'
-```
-
-**Expected output:** Streaming response with ChatGPT's reply
-
-### 4. Verify HTTPS Connection
-
-The `-v` (verbose) flag shows the SSL/TLS handshake:
-
-```bash
-curl -v "https://yourserver.com/chatgpt-proxy/api/auth/session" \
-  -H "Cookie: __Secure-next-auth.session-token=YOUR_TOKEN; __Secure-next-auth.callback-url=YOUR_CALLBACK; cf_clearance=YOUR_CLEARANCE" \
-  2>&1 | grep -E "(SSL|TLS|HTTP)"
-```
-
-**Expected output:**
-```
-* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
-* ALPN, server accepted to use h2
-> GET /chatgpt-proxy/api/auth/session HTTP/2
-< HTTP/2 200
-```
-
-This confirms:
-- ✅ HTTPS is being used
-- ✅ TLS 1.3 encryption
-- ✅ Successful connection
-
-## Testing
-
-This repository includes comprehensive test files for localhost/XAMPP testing. See [TESTING.md](TESTING.md) for complete documentation.
-
-### Interactive Web Test Interface
-
-Open `test-api.php` in your browser for a beautiful, user-friendly testing interface:
-
-```
-http://localhost/reverse-proxy/test-api.php
-```
-
-**Features:**
-- Modern, responsive UI
-- Cookie management with localStorage
-- Quick tests for all endpoints
-- Custom request builder
-- Real-time formatted results
-
-### Command Line Test Script
-
-Run automated tests from the command line using `test-proxy-cli.php`:
-
-```bash
-# 1. Edit test-proxy-cli.php and add your cookies
-# 2. Run the tests
-php test-proxy-cli.php
-```
-
-**Features:**
-- Automated test suite
-- Colored terminal output
-- Configuration validation
-- Comprehensive test summary
-
-### Manual Testing
-
-For quick manual testing, save as `test-proxy.php` and run from command line:
+### PHP Example
 
 ```php
-<?php
-// Test script for ChatGPT Proxy
-
-// Set your cookies here
 $cookies = [
-    '__Secure-next-auth.session-token' => 'YOUR_SESSION_TOKEN',
+    '__Secure-next-auth.session-token' => 'YOUR_TOKEN',
     '__Secure-next-auth.callback-url' => 'https%3A%2F%2Fchat.openai.com',
-    'cf_clearance' => 'YOUR_CF_CLEARANCE'
+    'cf_clearance' => 'YOUR_CLEARANCE'
 ];
 
-// Simulate cookies
-foreach ($cookies as $name => $value) {
-    $_COOKIE[$name] = $value;
-}
+$cookieString = implode('; ', array_map(
+    fn($k, $v) => "$k=$v",
+    array_keys($cookies),
+    $cookies
+));
 
-// Simulate request
-$_SERVER['REQUEST_METHOD'] = 'GET';
-$_GET['path'] = 'api/auth/session';
+$ch = curl_init('https://yourserver.com/chatgpt-proxy/api/auth/session');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_COOKIE, $cookieString);
+$response = curl_exec($ch);
+curl_close($ch);
 
-// Load and run proxy
-require_once 'ChatGPTProxy.php';
-$proxy = new ChatGPTProxy();
-$proxy->handleRequest();
+echo $response;
 ```
 
-Run with: `php test-proxy.php`
+### JavaScript Example
 
-For more details on testing, cookie setup, and troubleshooting, see **[TESTING.md](TESTING.md)**.
+```javascript
+fetch('https://yourserver.com/chatgpt-proxy/api/auth/session', {
+    credentials: 'include',
+    headers: {
+        'Cookie': 'your-cookie-string',
+        'Accept': 'application/json'
+    }
+})
+.then(res => res.json())
+.then(data => console.log(data));
+```
+
+## Common Endpoints
+
+- `/api/auth/session` - Check session status
+- `/backend-api/models` - Get available models
+- `/backend-api/conversations` - List conversations
+- `/backend-api/conversation` - Send/receive messages
 
 ## Troubleshooting
 
-### Error: "Missing required cookies"
+**"Missing required cookies"**
+→ Provide all three required cookies
 
-**Solution:** Ensure all three required cookies are provided. Cookies must be fresh and valid.
+**"cURL error"**
+→ Check PHP cURL extension: `php -m | grep curl`
 
-### Error: "cURL error"
+**Empty response**
+→ Cookies may be expired, get fresh ones
 
-**Solution:** 
-- Check that PHP cURL extension is installed: `php -m | grep curl`
-- Verify SSL certificates are up to date: `curl-config --ca`
-- Check firewall allows outbound HTTPS connections
+**Connection timeout**
+→ Check firewall allows outbound HTTPS to chat.openai.com
 
-### Empty or Error Response from ChatGPT
+## Security Notes
 
-**Solution:**
-- Cookies may have expired - obtain fresh cookies from browser
-- CloudFlare may be blocking the request - include all optional cookies
-- User-Agent may be rejected - ensure a valid browser User-Agent is sent
+⚠️ **Important:**
 
-### Connection Times Out
-
-**Solution:**
-- Increase timeout values in `ChatGPTProxy.php` (CURLOPT_TIMEOUT)
-- Check server can reach chat.openai.com: `curl -I https://chat.openai.com`
-
-## Security Considerations
-
-⚠️ **Important Security Notes:**
-
-1. **Cookie Protection:** Session cookies are sensitive. Protect them as you would passwords.
-2. **HTTPS Only:** Always use HTTPS to prevent cookie theft via man-in-the-middle attacks.
-3. **Access Control:** Implement authentication/authorization on the proxy to prevent unauthorized use.
-4. **Rate Limiting:** Consider adding rate limiting to prevent abuse.
-5. **Cookie Expiration:** Cookies expire after a period of time. Monitor and refresh as needed.
-
-## Architecture
-
-```
-[Your Frontend] 
-       ↓ HTTPS (with cookies)
-[PHP Reverse Proxy (index.php + ChatGPTProxy.php)]
-       ↓ HTTPS (with forwarded cookies)
-[chat.openai.com Web Interface]
-```
+1. **Protect cookies** - Treat them like passwords
+2. **Use HTTPS** - Always use HTTPS in production
+3. **Access control** - Implement authentication on the proxy
+4. **Rate limiting** - Consider adding rate limiting
 
 ## License
 
-This is provided as-is for educational purposes. Ensure your use complies with OpenAI's Terms of Service.
-
-## Verification Checklist
-
-- ✅ No OpenAI API keys are used or referenced
-- ✅ All communication uses HTTPS
-- ✅ Cookies are forwarded exactly as received
-- ✅ Conversation state is maintained through cookie sessions
-- ✅ Self-contained with no external dependencies (except cURL)
-- ✅ Compatible with standard LAMP stack
-- ✅ Single entry point (index.php) with helper class (ChatGPTProxy.php)
-
-## Notes
-
-- This proxy communicates with ChatGPT's **web interface**, not the OpenAI API
-- No API keys are required or used anywhere in the code
-- Authentication relies entirely on browser session cookies
-- The proxy maintains conversation state through the forwarded session cookies
-- All traffic between the proxy and ChatGPT uses HTTPS (enforced by the https:// URL scheme)
+Provided as-is for educational purposes. Ensure your use complies with OpenAI's Terms of Service.
